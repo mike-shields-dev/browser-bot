@@ -11,21 +11,36 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-const { arduino, j5 } = require("./arduino");
+const { board, j5 } = require("./arduino/board");
 
-arduino.on("ready", () => {
+board.on("ready", () => {
   io.on("connection", (socket) => {
-    console.log("client socket connection established");
+    const connectMsg = "socket connection established";
+    console.log(connectMsg);
+    socket.emit(connectMsg);
 
-    const motor = new j5.Led(2);
+    const motorPower = new j5.Led(2);
     const motorLimit = new j5.Switch(3);
 
     socket.on("motor", (msg) => {
-      msg === "start" ? motor.on() : msg === "stop" ? motor.off() : null;
+      if(msg === "start") {
+        motorPower.on();
+        socket.emit("");
+      }
+
+      if(msg === "stop") {
+        motorPower.off();
+      }
     });
 
-    motorLimit.on("close", () => socket.emit("motor limit", "closed"));
-    motorLimit.on("open", () => socket.emit("motor limit", "open"));
+    motorLimit.on("close", () => {
+      motorPower.off();
+      socket.emit("motor", "stopped");
+    });
+
+    motorLimit.on("open", () => {
+      socket.emit("motor", "started");
+    });
 
     socket.on("close", () => console.log("Socket closed"));
     socket.on("disconnect", () => console.log("Socket disconnected"));

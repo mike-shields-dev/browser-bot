@@ -9,9 +9,7 @@ const motorLimitStatus = document.getElementById("motor-limit-status");
 
 const socket = io();
 
-socket.on("ball hopper ready", () => {
-  console.log("ball hopper ready");
-});
+socket.on("socket connection established", () => console.log("socket connection established"));
 
 socket.on("motor limit", (msg) => {
   if (msg === "open") {
